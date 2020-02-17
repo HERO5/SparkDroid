@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':protocol', ':communicate'
 rootProject.name='SparkDroid'

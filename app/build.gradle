@@ -6,25 +6,39 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.mrl.sparkdroid"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         python {
             // 指定python路径
-            buildPython "/Library/Frameworks/Python.framework/Versions/3.7/bin/python3.7"
+            // buildPython "/Library/Frameworks/Python.framework/Versions/3.7/bin/python3.7"
+//            pyc {
+//                src false
+//            }
         }
         // 指定abi，如需在模拟器调试，增加"x86"，否则指定"armeabi-v7a"即可
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
     }
+//    sourceSets {
+//        main {
+//            python {
+//                srcDir "/data/user/0/com.mrl.sparkdroid/files/"
+//            }
+//        }
+//    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    //处理所有报META-INF/*'的错误
+    packagingOptions {
+        pickFirst 'META-INF/*'
     }
 }
 
@@ -35,4 +49,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation project(path: ':communicate')
 }
