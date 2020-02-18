@@ -51,10 +51,17 @@ public class WorkerHandler extends ChannelInboundHandlerAdapter {
             case MessageType.TASK_PUT:
                 Task task = (Task) message.getMessageContent().getContent();
                 if(task!=null){
-                    Map data = task.getParams();
-                    Object result = executor.exec(task.getFunc(), task.getFuncName(), new Object[]{data.get("f1"), data.get("f2")});
+                    Map<String, Object> data = task.getParams();
+                    Object[] params = null;
+                    if(data!=null){
+                        params = new Object[data.size()];
+                        for(int i=0; i<data.size(); i++){
+                            params[i] = data.get(String.valueOf(i));
+                        }
+                    }
+                    Object result = executor.exec(task.getFunc(), task.getFuncName(), params);
                     //输出结果
-                    sendMsg("任务处理: "+task.getName()+"."+task.getFuncName()+"("+data.get("f1")+", "+data.get("f2")+")"+" -> "+result, true);
+                    sendMsg("任务处理: "+task.getName()+"."+task.getFuncName()+"("+params+")"+" -> "+result, true);
                     Message res = Message.SUBMIT;
                     res.getMessageContent().setContent(result);
                     ctx.writeAndFlush(res);

@@ -28,9 +28,7 @@ import com.mrl.communicate.worker.boot.TcpWorker;
 import com.mrl.sparkdroid.util.FileUtil;
 import com.mrl.sparkdroid.util.StringUtil;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,10 +40,13 @@ public class MainActivity extends AppCompatActivity {
     public static String FILE_DIR;
     public static String SD_DIR;
 
+    public static final int MAX_BUFF = 0x1000;
+
     private ScrollView scrollMaster;
     private ScrollView scrollWorker;
     private TextView msgMaster;
     private TextView msgWorker;
+    private EditText source;
     private EditText ip;
     private EditText port;
     private Button master;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            if(msgMaster.getText().length() > MAX_BUFF) msgMaster.setText(null);
             msgMaster.append(msg.obj+"\n");
             scrollMaster.scrollTo(0,msgMaster.getBottom());
         }
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            if(msgWorker.getText().length() > MAX_BUFF) msgWorker.setText(null);
             msgWorker.append(msg.obj+"\n");
             scrollWorker.scrollTo(0,msgWorker.getBottom());
         }
@@ -81,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
         init();
         initPython();
-        callPythonCode();
+        testPythonCode();
     }
 
     //通过一个函数来申请权限
@@ -107,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         scrollWorker = findViewById(R.id.scroll_worker);
         msgMaster = findViewById(R.id.msg_master);
         msgWorker = findViewById(R.id.msg_worker);
+        source = findViewById(R.id.source);
         ip = findViewById(R.id.ip);
         port = findViewById(R.id.port);
         master = findViewById(R.id.master);
@@ -125,11 +129,22 @@ public class MainActivity extends AppCompatActivity {
             String p = port.getText().toString().trim();
             switch (view.getId()) {
                 case R.id.master:
+                    msgMaster.append("先清除已存在连接\n");
+                    for(TcpWorker worker : tcpClients){
+                        worker.shutDown();
+                    }
                     if(!StringUtil.regxPort(p)){
                         Toast.makeText(MainActivity.this, "非法端口", Toast.LENGTH_LONG).show();
                         break;
                     }
-                    JobManager.initTask(20);
+                    String sourceCode = source.getText().toString();
+                    if(sourceCode!=null && sourceCode.contains("def main") && sourceCode.contains("return")){
+                        sourceCode = source.getText().toString();
+                    }else {
+                        msgMaster.append("必须包含一个带单参、有返回值、名为main的方法");
+                        break;
+                    }
+                    JobManager.initTask(10, sourceCode);
 //                    Intent intent1 = new Intent(MainActivity.this, ServerService.class);
 //                    startService(intent1);
                     TcpMaster.getInstance().init(handlerMaster, Integer.valueOf(p));
@@ -145,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                     Executor executor = new Executor() {
                         //这里加上@Override就会报错?
                         public Object exec(String source, String funcName, Object[] params) {
-                            Object res = call(source, params);
+                            Object res = call(source, funcName, params);
                             return res.toString();
                         }
                     };
@@ -179,9 +194,9 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(listFileName);
         for(String name : listFileName){
             sb.append(name+"\n");
-            if(name.endsWith(".py")){
-                FileUtil.delFile(name);
-            }
+//            if(name.endsWith(".py")){
+//                FileUtil.delFile(name);
+//            }
         }
         return sb.toString();
     }
@@ -193,14 +208,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    Object call(String source, Object[] params){
+    Object call(String source, String funcName, Object[] params){
         Python py = Python.getInstance();
-        Object res = py.getModule("executor").callAttr("call", source, params);
+        Object res = py.getModule("executor").callAttr("call", source, funcName, params);
         return res;
     }
 
     // 调用python代码
-    void callPythonCode(){
+    void testPythonCode(){
         Python py = Python.getInstance();
         // 调用hello.py模块中的greet函数，并传一个参数
         // 等价用法：py.getModule("hello").get("greet").call("Android");
@@ -237,30 +252,4 @@ public class MainActivity extends AppCompatActivity {
         data.print();
     }
 
-    public static void getAllFileName(String path, ArrayList<String> listFileName) {
-        File file = new File(path);
-        File[] files = file.listFiles();
-        String[] names = file.list();
-        int i;
-        if (names != null) {
-            String[] completNames = new String[names.length];
-
-            for(i = 0; i < names.length; ++i) {
-                completNames[i] = path + "/" + names[i];
-            }
-
-            listFileName.addAll(Arrays.asList(completNames));
-        }
-
-        File[] var9 = files;
-        i = files.length;
-
-        for(int var7 = 0; var7 < i; ++var7) {
-            File a = var9[var7];
-            if (a.isDirectory()) {
-                getAllFileName(a.getAbsolutePath() + "/", listFileName);
-            }
-        }
-
-    }
 }

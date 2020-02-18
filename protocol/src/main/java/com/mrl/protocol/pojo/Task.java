@@ -15,7 +15,7 @@ public class Task {
     private int state;
     private String func;
     private String funcName;
-    private Map params;
+    private Map<String, Object> params;
     private String ops;
     private String describe;
 
@@ -59,11 +59,11 @@ public class Task {
         this.funcName = funcName;
     }
 
-    public Map getParams() {
+    public Map<String, Object> getParams() {
         return params;
     }
 
-    public void setParams(Map params) {
+    public void setParams(Map<String, Object> params) {
         this.params = params;
     }
 

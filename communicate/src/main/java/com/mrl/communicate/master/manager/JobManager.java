@@ -19,71 +19,38 @@ public class JobManager {
      * 为了线程安全，最好不要在其他地方直接调用ResourceRepository
      */
 
-    //生成 java task 的临时工具
-    public static void initTask_J(int count) {
-        for(int i=0; i<count; i++){
-
-            Task task = new Task();
-
-            //long time = new Date().getTime();
-            String name = "_"+getRandomString(12);
-            StringBuilder sb = new StringBuilder();
-            sb.append("package com.even.test"+name+";");
-            sb.append("import java.util.Map;\nimport java.text.DecimalFormat;\n");
-            sb.append("public class Sum{\n");
-            sb.append("private final DecimalFormat df = new DecimalFormat(\"#.#####\");\n");
-            sb.append("public Double calculate(Map<String,Double> data){\n");
-            sb.append("double d = (30*data.get(\"f1\") + 20*data.get(\"f2\") + 50*data.get(\"f3\"))/100;\n");
-            sb.append("return Double.valueOf(df.format(d));}}\n");
-
-            //准备测试数据
-            Map<String, Double> data = new HashMap<String,Double>();
-            double max = 22.0;
-            double min = 11.0;
-            data.put("f1", nextDouble(min - 1, max + 1));
-            data.put("f2", nextDouble(min - 1, max + 1));
-            data.put("f3", nextDouble(min - 1, max + 1));
-
-            task.setId(name);
-            task.setName("com.even.test"+name+".Sum");
-            task.setParams(data);
-            task.setOps("-Xlint:unchecked");
-            task.setFunc(sb.toString());
-            task.setFuncName("calculate");
-
-            ResourceRepository.task.add(task);
-        }
-    }
-
     //生成 python task 的临时工具
-    public static void initTask(int count) {
-        for(int i=0; i<count; i++){
-
-            Task task = new Task();
-
-            //long time = new Date().getTime();
-            String name = "_"+getRandomString(12);
+    public static void initTask(int count, String source) {
+        Task task = new Task();
+        double max = 22.0;
+        double min = 11.0;
+        Map data = null;
+        if(source==null){
             StringBuilder sb = new StringBuilder();
-            sb.append("def add(params) :\n");
-            sb.append("    return params[0]*params[1]/81231.2353\n");
-
+            sb.append("def main(params) :\n");
+            sb.append("    int = params[0]+params[1]\n");
+            sb.append("    str = params[2]\n");
+            sb.append("    print(\"res:\", int, str)\n");
+            sb.append("    return int");
+            source = sb.toString();
+            data = new HashMap<String,Double>();
             //准备测试数据
-            Map<String, Double> data = new HashMap<String,Double>();
-            double max = 22.0;
-            double min = 11.0;
-            data.put("f1", nextDouble(min - 1, max + 1));
-            data.put("f2", nextDouble(min - 1, max + 1));
-
+            data.put("0", nextDouble(min - 1, max + 1));
+            data.put("1", nextDouble(min - 1, max + 1));
+            data.put("2", "hello, it is SparkDroid");
+        }
+        for(int i=0; i<count; i++){
+            String name = "_"+getRandomString(12);
             task.setId(name);
             task.setName(name);
             task.setParams(data);
-            task.setFunc(sb.toString());
-            task.setFuncName("add");
-
+            task.setFunc(source);
+            task.setFuncName("main");
             ResourceRepository.task.add(task);
         }
         return;
     }
+
     public static String getRandomString(int length){
         String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Random random=new Random();
