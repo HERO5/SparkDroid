@@ -3,7 +3,7 @@ package com.mrl.communicate.worker.boot;
 import android.os.Handler;
 
 import com.mrl.communicate.business.Executor;
-import com.mrl.communicate.worker.handler.WorkerHandler;
+import com.mrl.communicate.worker.handler.IterationWorkerHandler;
 import com.mrl.communicate.parse.MessageDecoder;
 import com.mrl.communicate.parse.MessageEncoder;
 
@@ -23,6 +23,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 /**
  * @program: com.mrl.netty.client.boot
  * @description:
+ * @question: 1.到底要不要把绑定workerhandler的工作放到Activity中
  * @author:
  * @create: 2020-02-01 18:51
  **/
@@ -54,7 +55,7 @@ public class TcpWorker {
                         pipeline.addLast(new IdleStateHandler(0,4,0, TimeUnit.SECONDS))
                                 .addLast(new MessageEncoder())
                                 .addLast(new MessageDecoder())
-                                .addLast(new WorkerHandler(handler, executor));
+                                .addLast(new IterationWorkerHandler(handler, executor));
                     }
                 });
     }

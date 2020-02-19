@@ -2,6 +2,7 @@ package com.mrl.communicate.master.data;
 
 import com.mrl.protocol.pojo.Task;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +27,13 @@ public class ResourceRepository {
     //任务分配清单<workerIp:port, task>
     public static final Map<String, Task> taskWorker = new ConcurrentHashMap<>();
 
-    //已完成任务清单<task.id, result>
-    public static final Map<String, Object> taskResult = new ConcurrentHashMap<>();
+    //注意，下面两种结果集不可混用
+    //已完成任务清单<task.id, result> 适用于以task为单位的任务
+    public static final Map<String, Object> taskResultMap = new ConcurrentHashMap<>();
+    //已完成任务清单
+    public static final List<Object> taskResultList = new ArrayList<>();
 
+    public static long timeStart = -1;
+
+    public static long timeStop = -1;
 }

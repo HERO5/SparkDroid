@@ -1,5 +1,6 @@
 package com.mrl.protocol.pojo;
 
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -10,14 +11,31 @@ import java.util.Map;
  **/
 public class Task {
 
+    public static final int FAILED = -1;
+    public static final int SUCCESS = 1;
+
     private String id;
     private String name;
     private int state;
     private String func;
     private String funcName;
-    private Map<String, Object> params;
+    private Object[] params;
+    /**
+     * complete用来存储本次处理得到的最终数据
+     */
+    private Object[] complete;
+    /**
+     * intermission用来存储本次处理得到的中间数据
+     */
+    private Object[] intermission;
     private String ops;
     private String describe;
+
+    public Task(){}
+
+    public Task(int state) {
+        this.state = state;
+    }
 
     public String getId() {
         return id;
@@ -59,12 +77,28 @@ public class Task {
         this.funcName = funcName;
     }
 
-    public Map<String, Object> getParams() {
+    public Object[] getParams() {
         return params;
     }
 
-    public void setParams(Map<String, Object> params) {
+    public void setParams(Object[] params) {
         this.params = params;
+    }
+
+    public Object[] getComplete() {
+        return complete;
+    }
+
+    public void setComplete(Object[] complete) {
+        this.complete = complete;
+    }
+
+    public Object[] getIntermission() {
+        return intermission;
+    }
+
+    public void setIntermission(Object[] intermission) {
+        this.intermission = intermission;
     }
 
     public String getOps() {
@@ -86,12 +120,14 @@ public class Task {
     @Override
     public String toString() {
         return "Task{" +
-                "id=" + id +
-                ", name=" + name +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
                 ", state=" + state +
                 ", func='" + func + '\'' +
                 ", funcName='" + funcName + '\'' +
-                ", params=" + params +
+                ", params=" + Arrays.toString(params) +
+                ", complete=" + Arrays.toString(complete) +
+                ", intermission=" + Arrays.toString(intermission) +
                 ", ops='" + ops + '\'' +
                 ", describe='" + describe + '\'' +
                 '}';

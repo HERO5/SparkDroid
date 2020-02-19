@@ -24,7 +24,9 @@ import com.chaquo.python.android.AndroidPlatform;
 import com.mrl.communicate.business.Executor;
 import com.mrl.communicate.master.boot.TcpMaster;
 import com.mrl.communicate.master.manager.JobManager;
+import com.mrl.communicate.master.manager.JobManager2;
 import com.mrl.communicate.worker.boot.TcpWorker;
+import com.mrl.communicate.middle.ResultOfCall;
 import com.mrl.sparkdroid.util.FileUtil;
 import com.mrl.sparkdroid.util.StringUtil;
 
@@ -129,10 +131,14 @@ public class MainActivity extends AppCompatActivity {
             String p = port.getText().toString().trim();
             switch (view.getId()) {
                 case R.id.master:
+
                     msgMaster.append("先清除已存在连接\n");
                     for(TcpWorker worker : tcpClients){
                         worker.shutDown();
                     }
+                    TcpMaster.getInstance().shutDown();
+
+                    //检查各项输入是否合法
                     if(!StringUtil.regxPort(p)){
                         Toast.makeText(MainActivity.this, "非法端口", Toast.LENGTH_LONG).show();
                         break;
@@ -144,10 +150,13 @@ public class MainActivity extends AppCompatActivity {
                         msgMaster.append("必须包含一个带单参、有返回值、名为main的方法");
                         break;
                     }
-                    JobManager.initTask(10, sourceCode);
+                    //检查完毕
+
 //                    Intent intent1 = new Intent(MainActivity.this, ServerService.class);
 //                    startService(intent1);
-                    TcpMaster.getInstance().init(handlerMaster, Integer.valueOf(p));
+                    if(!TcpMaster.getInstance().isInit()) {
+                        TcpMaster.getInstance().init(handlerMaster, new JobManager2(sourceCode, new String[]{""}), Integer.valueOf(p));
+                    }
                     msgMaster.append("......Master is  ready......\n");
                     Log.d("on master click", "......Master is  ready......");
                     break;
@@ -160,13 +169,15 @@ public class MainActivity extends AppCompatActivity {
                     Executor executor = new Executor() {
                         //这里加上@Override就会报错?
                         public Object exec(String source, String funcName, Object[] params) {
-                            Object res = call(source, funcName, params);
-                            return res.toString();
+                            ResultOfCall res = call1(source, funcName, params);
+                            return res;
                         }
                     };
-                    TcpWorker tcpClient = new TcpWorker(handlerWorker, executor, i, Integer.valueOf(p));
-                    tcpClients.add(tcpClient);
-                    tcpClient.connect();
+                    for(int in=0;in<1;in++){
+                        TcpWorker tcpClient = new TcpWorker(handlerWorker, executor, i, Integer.valueOf(p));
+                        tcpClients.add(tcpClient);
+                        tcpClient.connect();
+                    }
                     msgMaster.append("......client is  ready......\n");
                     Log.d("on worker clicked", "......Worker is  ready......");
                     break;
@@ -177,8 +188,7 @@ public class MainActivity extends AppCompatActivity {
 //                    Intent intent2 = new Intent(MainActivity.this, ServerService.class);
 //                    stopService(intent2);
                     TcpMaster.getInstance().shutDown();
-                    String files = reportFiles();
-                    msgMaster.setText(files);
+                    msgMaster.setText(JobManager.reportTime());
                     msgWorker.setText(null);
                     Log.d("on stop clicked", "......stop all......");
                     break;
@@ -194,9 +204,6 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(listFileName);
         for(String name : listFileName){
             sb.append(name+"\n");
-//            if(name.endsWith(".py")){
-//                FileUtil.delFile(name);
-//            }
         }
         return sb.toString();
     }
@@ -208,10 +215,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    Object call(String source, String funcName, Object[] params){
+    PyObject call(String source, String funcName, Object[] params){
         Python py = Python.getInstance();
-        Object res = py.getModule("executor").callAttr("call", source, funcName, params);
+        PyObject res = py.getModule("executor").callAttr("call", source, funcName, params);
         return res;
+    }
+
+    ResultOfCall call1(String source, String funcName, Object[] params){
+        Python py = Python.getInstance();
+        PyObject res = py.getModule("executor").callAttr("call1", source, funcName, params);
+        if(res!=null){
+            return res.toJava(ResultOfCall.class);
+        }else {
+            return null;
+        }
     }
 
     // 调用python代码

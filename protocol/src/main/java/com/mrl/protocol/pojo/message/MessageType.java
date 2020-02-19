@@ -6,7 +6,7 @@ package com.mrl.protocol.pojo.message;
  * @author:
  * @create: 2020-02-01 17:22
  **/
-public class MessageType {
+public interface MessageType {
 
     public static final int TASK_GET = 1;
 

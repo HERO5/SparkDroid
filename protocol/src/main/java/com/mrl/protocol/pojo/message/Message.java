@@ -1,5 +1,7 @@
 package com.mrl.protocol.pojo.message;
 
+import com.mrl.protocol.pojo.Task;
+
 /**
  * @program: com.mrl.netty.common.pojo.message
  * @description: message
@@ -12,8 +14,7 @@ public class Message {
             new MessageHeader(MessageType.HEART_BEAT), null
     );
     public static final Message SUBMIT = new Message(
-            new MessageHeader(MessageType.TASK_SUBMIT),
-            new MessageContent<String>()
+            new MessageHeader(MessageType.TASK_SUBMIT), null
     );
     public static final Message TASK_GET = new Message(
             new MessageHeader(MessageType.TASK_GET), null

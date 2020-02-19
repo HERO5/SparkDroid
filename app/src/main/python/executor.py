@@ -1,8 +1,10 @@
 # python 3
 
+import sys
+import os
+from java import jclass
 from inspect import isfunction
 from venv import logger
-
 
 class CompileMixin:
 
@@ -29,3 +31,14 @@ def call(source, funcName, params):
     func = CompileMixin._compile(source, funcName)
     print("func: ", func)
     return func(params)
+
+def call1(source, funcName, params):
+    #func必须有返回值，且格式为[Object[], Object[]]
+    func = CompileMixin._compile(source, funcName)
+    #print("func: ", func)
+    ResultOfCall = jclass("com.mrl.communicate.middle.ResultOfCall")
+    result = ResultOfCall()
+    resultRaw = func(params)
+    result.setComplete(resultRaw[0])
+    result.setIntermission(resultRaw[1])
+    return result

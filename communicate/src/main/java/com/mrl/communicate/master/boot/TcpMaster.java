@@ -3,6 +3,7 @@ package com.mrl.communicate.master.boot;
 import android.os.Handler;
 
 import com.mrl.communicate.master.handler.ServerHandler;
+import com.mrl.communicate.master.manager.JobManager;
 import com.mrl.communicate.parse.MessageDecoder;
 import com.mrl.communicate.parse.MessageEncoder;
 
@@ -49,7 +50,7 @@ public class TcpMaster {
         return INSTANCE;
     }
 
-    public void init(final Handler handler, int port) {
+    public void init(final Handler handler, final JobManager jobManager, int port) {
         if (isInit) {
             return;
         }
@@ -70,7 +71,7 @@ public class TcpMaster {
                         pipeline.addLast(new IdleStateHandler(10, 0, 0, TimeUnit.SECONDS))
                                 .addLast(new MessageEncoder())
                                 .addLast(new MessageDecoder())
-                                .addLast(new ServerHandler(handler));
+                                .addLast(new ServerHandler(handler, jobManager));
                     }
                 });
 
@@ -85,4 +86,9 @@ public class TcpMaster {
             mWorkerGroup.shutdownGracefully();
         }
     }
+
+    public boolean isInit() {
+        return isInit;
+    }
+
 }

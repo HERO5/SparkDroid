@@ -4,12 +4,10 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.mrl.communicate.business.Executor;
-import com.mrl.protocol.pojo.Task;
 import com.mrl.protocol.pojo.message.Message;
 import com.mrl.protocol.pojo.message.MessageType;
 
 import java.util.Date;
-import java.util.Map;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -22,10 +20,10 @@ import io.netty.handler.timeout.IdleStateEvent;
  * @author:
  * @create: 2020-02-01 18:53
  **/
-public class WorkerHandler extends ChannelInboundHandlerAdapter {
+public abstract class WorkerHandler extends ChannelInboundHandlerAdapter {
 
     private Handler handler;
-    private Executor executor;
+    protected Executor executor;
 
     public WorkerHandler(Handler handler, Executor executor) {
         this.handler = handler;
@@ -37,7 +35,6 @@ public class WorkerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx){
         sendMsg("client login", true);
         Message message = Message.TASK_GET;
-        //Message message = Message.HEART_BEAT;
         ctx.writeAndFlush(message);
     }
 
@@ -49,23 +46,7 @@ public class WorkerHandler extends ChannelInboundHandlerAdapter {
         int type = message!=null?message.getMessageHeader().getMessageType():0;
         switch (type){
             case MessageType.TASK_PUT:
-                Task task = (Task) message.getMessageContent().getContent();
-                if(task!=null){
-                    Map<String, Object> data = task.getParams();
-                    Object[] params = null;
-                    if(data!=null){
-                        params = new Object[data.size()];
-                        for(int i=0; i<data.size(); i++){
-                            params[i] = data.get(String.valueOf(i));
-                        }
-                    }
-                    Object result = executor.exec(task.getFunc(), task.getFuncName(), params);
-                    //输出结果
-                    sendMsg("任务处理: "+task.getName()+"."+task.getFuncName()+"("+params+")"+" -> "+result, true);
-                    Message res = Message.SUBMIT;
-                    res.getMessageContent().setContent(result);
-                    ctx.writeAndFlush(res);
-                }
+                onTaskPut(ctx, message);
                 break;
             case MessageType.TASK_CONFIRM:
                 sendMsg("结果得到确认", true);
@@ -76,6 +57,8 @@ public class WorkerHandler extends ChannelInboundHandlerAdapter {
                 break;
         }
     }
+
+    public abstract void onTaskPut(ChannelHandlerContext ctx,Message message);
 
     //用于捕获IdleState#WRITER_IDLE事件（未在指定时间内向服务器发送数据），然后向Server发送一个心跳包
     @Override
@@ -99,7 +82,7 @@ public class WorkerHandler extends ChannelInboundHandlerAdapter {
      * @param isLog
      */
 
-    private void sendMsg(String message, boolean isLog){
+    protected void sendMsg(String message, boolean isLog){
         android.os.Message msg = new android.os.Message();
         msg.obj = message;
         handler.sendMessage(msg);

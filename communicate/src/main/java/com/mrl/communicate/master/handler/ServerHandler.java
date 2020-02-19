@@ -27,9 +27,11 @@ import io.netty.handler.timeout.IdleStateEvent;
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     private Handler handler;
+    private JobManager jobManager;
 
-    public ServerHandler(Handler handler){
+    public ServerHandler(Handler handler, JobManager jobManager){
         this.handler = handler;
+        this.jobManager = jobManager;
     }
 
     @Override
@@ -40,7 +42,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         String workerId = workerIp+":"+port;
         Map<String, ChannelHandlerContext> workers = ResourceRepository.workers;
         workers.put(workerId+":"+port, ctx);
-//        listener.handleReceive("有新连接接入 " + workerId+":"+port);
         sendMsg("有新连接接入 " + workerId, true);
     }
 
@@ -50,7 +51,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         for (String workerId : workers.keySet()) {
             if (workers.get(workerId) == ctx) {
                 workers.remove(workerId);
-//                listener.handleReceive("断开连接 " + workerId);
                 sendMsg("断开连接 " + workerId, true);
                 return;
             }
@@ -59,7 +59,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         String workerIp = insocket.getAddress().getHostAddress();
         int port = insocket.getPort();
         String workerId = workerIp+":"+port;
-//        listener.handleReceive("断开连接失败" + workerId);
         sendMsg("断开连接失败" + workerId, true);
     }
 
@@ -74,8 +73,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         int type = message!=null?message.getMessageHeader().getMessageType():0;
         switch (type){
             case MessageType.TASK_GET:
-                Task task = JobManager.getTask(workerId);
-//                listener.handleReceive("来自"+workerId+"的任务请求:\n");
+                Task task = jobManager.getTask(workerId);
                 sendMsg("来自"+workerId+"的任务请求", true);
                 MessageContent<Task> content = new MessageContent<>(task);
                 message.setMessageContent(content);
@@ -85,8 +83,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 break;
             case MessageType.TASK_SUBMIT:
                 Object res = message.getMessageContent().getContent();
-                boolean complete = JobManager.submitTask(workerId, res);
-//                listener.handleReceive("来自"+workerId+"的提交: \n");
+                boolean complete = jobManager.submitTask(workerId, res);
                 sendMsg("来自"+workerId+"的提交: "+res+"; 结果正确："+complete+"\n", true);
                 message.setMessageContent(null);
                 message.getMessageHeader().setMessageType(MessageType.TASK_CONFIRM);
@@ -94,7 +91,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 ctx.flush();
                 break;
             case MessageType.HEART_BEAT:
-//                listener.handleReceive("来自客户端的心跳: "+ workerId);
                 sendMsg("来自客户端的心跳: "+ workerId,true);
                 break;
             default:
@@ -121,7 +117,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 String workerIp = insocket.getAddress().getHostAddress();
                 int port = insocket.getPort();
                 String workerId = workerIp+":"+port;
-//                listener.handleReceive("关闭这个不活跃通道！"+workerId);
                 sendMsg("关闭这个不活跃通道！"+workerId, true);
                 ctx.channel().close();
             }

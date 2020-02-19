@@ -50,7 +50,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="text|textMultiLine"
                         android:background="@null"
-                        android:text="def main(params):&#x000A;    print('hello SparkDroid!')&#x000A;    return 0"
+                        android:text=""
                         android:hint="source python"/>
                 </HorizontalScrollView>
             </ScrollView>
