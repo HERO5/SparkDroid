@@ -3,9 +3,7 @@ package com.mrl.communicate.master.manager;
 import com.mrl.communicate.master.data.ResourceRepository;
 import com.mrl.protocol.pojo.Task;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Random;
 
 /**
  * @program: com.mrl.netty.server.service
@@ -14,6 +12,9 @@ import java.util.Random;
  * @create: 2020-02-01 15:30
  **/
 public class JobManager2 extends JobManager {
+
+    //此参数用来指定打包新任务时，一个新任务包含的参数个数
+    public static int paramsNum = 100;
 
     //初始化一个master时一定要先清理ResourceRepository
     public JobManager2(String source, Object[] params){
@@ -42,8 +43,23 @@ public class JobManager2 extends JobManager {
                         Collections.addAll(ResourceRepository.taskResultList, complete);
                     }
                     if(intermission!=null && intermission.length>0){
+                        //下面属于任务分割的一部分，将worker返回的中间数据按批次放入Task中，批次大小对效率影响很大
+                        int count = 0;
+                        Object [] params = new Object[paramsNum];
                         for(int i=0; i<intermission.length; i++){
-                            initTask(new Object[]{intermission[i]});
+                            params[count++] = intermission[i];
+                            if(count>= paramsNum || (intermission.length == (i+1))){
+                                if(count < paramsNum){
+                                    Object[] params2 = new Object[count];
+                                    for(int j=0;j<count;j++){
+                                        params2[j] = params[j];
+                                    }
+                                    params = params2;
+                                }
+                                initTask(params);
+                                count = 0;
+                                params = new Object[paramsNum];
+                            }
                         }
                     }
                     success = true;

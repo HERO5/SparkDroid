@@ -84,7 +84,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             case MessageType.TASK_SUBMIT:
                 Object res = message.getMessageContent().getContent();
                 boolean complete = jobManager.submitTask(workerId, res);
-                sendMsg("来自"+workerId+"的提交: "+res+"; 结果正确："+complete+"\n", true);
+                sendMsg("来自"+workerId+"的提交; 结果正确："+complete+"\n", true);
                 message.setMessageContent(null);
                 message.getMessageHeader().setMessageType(MessageType.TASK_CONFIRM);
                 ctx.write(message);

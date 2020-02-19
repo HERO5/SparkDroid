@@ -49,8 +49,10 @@ def main(params):
     intermission = []
     dict = {}
     q = queue.Queue()
-    q.put(params[0])
-    dict[params[0]] = check(params[0])
+    for param in params:
+        print("params", param)
+        q.put(param)
+        dict[param] = check(param)
     while q.empty() != True:
         state = q.get()
         limit = dict.pop(state)
