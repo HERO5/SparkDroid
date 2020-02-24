@@ -13,23 +13,27 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         python {
             // 指定python路径
-            // buildPython "/Library/Frameworks/Python.framework/Versions/3.7/bin/python3.7"
-//            pyc {
-//                src false
-//            }
+//            buildPython "/Library/Frameworks/Python.framework/Versions/3.7/bin/python3.7"
+            pip{
+                install "Beautifulsoup4"
+                install "requests"
+                //直接从官网上下载资源会非常慢，建议将依赖包下载到本地
+//                install "tensorflow" //此行等价于下面数行
+                install "libs/chaquopy/chaquopy_openblas-0.2.20-2-py2.py3-none-android_15_armeabi_v7a.whl"
+                install "libs/chaquopy/numpy-1.17.4-1-cp36-cp36m-android_15_armeabi_v7a.whl"
+                install "libs/chaquopy/tensorflow-1.10.1-7-cp36-cp36m-android_15_armeabi_v7a.whl"
+                install "libs/chaquopy/tensorboard-1.10.0-py3-none-any.whl"
+                install "libs/chaquopy/grpcio-1.12.1-1-cp36-cp36m-android_15_armeabi_v7a.whl"
+                install "libs/chaquopy/protobuf-3.11.3-py2.py3-none-any.whl"
+                install "libs/chaquopy/setuptools-39.1.0-py2.py3-none-any.whl"
+                install "libs/chaquopy/Markdown-3.2.1-py2.py3-none-any.whl"
+            }
         }
         // 指定abi，如需在模拟器调试，增加"x86"，否则指定"armeabi-v7a"即可
         ndk {
-            abiFilters "armeabi-v7a", "x86"
+            abiFilters "armeabi-v7a"
         }
     }
-//    sourceSets {
-//        main {
-//            python {
-//                srcDir "/data/user/0/com.mrl.sparkdroid/files/"
-//            }
-//        }
-//    }
     buildTypes {
         release {
             minifyEnabled false

@@ -17,7 +17,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.chaquo.python.Kwarg;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
@@ -32,6 +31,7 @@ import com.mrl.sparkdroid.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private Button master;
     private Button worker;
     private Button stop;
+    private Button tensor;
     private final Handler handlerMaster = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -86,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
         init();
         initPython();
-        testPythonCode();
     }
 
     //通过一个函数来申请权限
@@ -118,9 +118,11 @@ public class MainActivity extends AppCompatActivity {
         master = findViewById(R.id.master);
         worker = findViewById(R.id.worker);
         stop = findViewById(R.id.stop);
+        tensor = findViewById(R.id.tensor);
         master.setOnClickListener(mListener);
         worker.setOnClickListener(mListener);
         stop.setOnClickListener(mListener);
+        tensor.setOnClickListener(mListener);
     }
 
     View.OnClickListener mListener = new View.OnClickListener() {
@@ -129,21 +131,19 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             String i = ip.getText().toString().trim();
             String p = port.getText().toString().trim();
+            String sourceCode = source.getText().toString();
             switch (view.getId()) {
                 case R.id.master:
-
                     msgMaster.append("先清除已存在连接\n");
                     for(TcpWorker worker : tcpClients){
                         worker.shutDown();
                     }
                     TcpMaster.getInstance().shutDown();
-
                     //检查各项输入是否合法
                     if(!StringUtil.regxPort(p)){
                         Toast.makeText(MainActivity.this, "非法端口", Toast.LENGTH_LONG).show();
                         break;
                     }
-                    String sourceCode = source.getText().toString();
                     if(sourceCode!=null && sourceCode.contains("def main") && sourceCode.contains("return")){
                         sourceCode = source.getText().toString();
                     }else {
@@ -151,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
                     //检查完毕
-
 //                    Intent intent1 = new Intent(MainActivity.this, ServerService.class);
 //                    startService(intent1);
                     if(!TcpMaster.getInstance().isInit()) {
@@ -192,6 +191,32 @@ public class MainActivity extends AppCompatActivity {
                     msgWorker.setText(null);
                     Log.d("on stop clicked", "......stop all......");
                     break;
+                case R.id.tensor:
+//                    final String finalSourceCode = sourceCode;
+//                    new Thread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            call(finalSourceCode, "train", null);
+//                            msgMaster.append("训练完成\n模型保存在\"/storage/emulated/0/tensor-model/\"");
+//                        }
+//                    }).start();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            long start = new Date().getTime();
+                            Message message1 = new Message();
+                            message1.obj = "开始训练MNIST";
+                            handlerMaster.sendMessage(message1);
+                            PythonTest.testTensor();
+                            long end = new Date().getTime();
+                            Message message2 = new Message();
+                            message2.obj = "MNIST训练完成\n模型保存在\"/storage/emulated/0/tensor-model/\"\n耗时:"+(end-start);
+                            handlerMaster.sendMessage(message2);
+                        }
+                    }).start();
+                    break;
+                default:
+                    break;
             }
         }
     };
@@ -229,44 +254,6 @@ public class MainActivity extends AppCompatActivity {
         }else {
             return null;
         }
-    }
-
-    // 调用python代码
-    void testPythonCode(){
-        Python py = Python.getInstance();
-        // 调用hello.py模块中的greet函数，并传一个参数
-        // 等价用法：py.getModule("hello").get("greet").call("Android");
-        py.getModule("hello").callAttr("greet", "Android");
-
-        // 调用python内建函数help()，输出了帮助信息
-        Object oj = py.getBuiltins().get("help").call();
-        System.out.println(oj);
-
-        PyObject obj1 = py.getModule("hello").callAttr("add", 2,3);
-        // 将Python返回值换为Java中的Integer类型
-        Integer sum = obj1.toJava(Integer.class);
-        Log.d(TAG,"add = "+sum.toString());
-
-        // 调用python函数，命名式传参，等同 sub(10,b=1,c=3)
-        PyObject obj2 = py.getModule("hello").callAttr("sub", 10,new Kwarg("b", 1), new Kwarg("c", 3));
-        Integer result = obj2.toJava(Integer.class);
-        Log.d(TAG,"sub = "+result.toString());
-
-        // 调用Python函数，将返回的Python中的list转为Java的list
-        PyObject obj3 = py.getModule("hello").callAttr("get_list", 10,"xx",5.6,'c');
-        List<PyObject> pyList = obj3.asList();
-        Log.d(TAG,"get_list = "+pyList.toString());
-
-        // 将Java的ArrayList对象传入Python中使用
-        List<PyObject> params = new ArrayList<PyObject>();
-        params.add(PyObject.fromJava("alex"));
-        params.add(PyObject.fromJava("bruce"));
-        py.getModule("hello").callAttr("print_list", params);
-
-        // Python中调用Java类
-        PyObject obj4 = py.getModule("hello").callAttr("get_java_bean");
-        JavaBean data = obj4.toJava(JavaBean.class);
-        data.print();
     }
 
 }
