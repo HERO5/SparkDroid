@@ -31,8 +31,8 @@ public class JobManager2 extends JobManager {
      */
     @Override
     public boolean submitTask(String workerIp, Object res) {
-        Task task = ResourceRepository.taskWorker.get(workerIp);
-        ResourceRepository.taskWorker.remove(workerIp);
+//        Task task = ResourceRepository.taskWorker.get(workerIp);
+        Task task = ResourceRepository.taskWorker.remove(workerIp);
         boolean success = false;
         if(res!=null && res instanceof Task) {
             switch (((Task) res).getState()){

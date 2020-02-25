@@ -138,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                     for(TcpWorker worker : tcpClients){
                         worker.shutDown();
                     }
+                    tcpClients.clear();
                     TcpMaster.getInstance().shutDown();
                     //检查各项输入是否合法
                     if(!StringUtil.regxPort(p)){
@@ -184,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     for(TcpWorker worker : tcpClients){
                         worker.shutDown();
                     }
+                    tcpClients.clear();
 //                    Intent intent2 = new Intent(MainActivity.this, ServerService.class);
 //                    stopService(intent2);
                     TcpMaster.getInstance().shutDown();

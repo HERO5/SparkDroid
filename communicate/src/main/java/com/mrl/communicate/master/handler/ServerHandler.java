@@ -3,7 +3,6 @@ package com.mrl.communicate.master.handler;
 import android.os.Handler;
 import android.util.Log;
 
-import com.mrl.communicate.master.data.ResourceRepository;
 import com.mrl.communicate.master.manager.JobManager;
 import com.mrl.protocol.pojo.Task;
 import com.mrl.protocol.pojo.message.Message;
@@ -11,7 +10,6 @@ import com.mrl.protocol.pojo.message.MessageContent;
 import com.mrl.protocol.pojo.message.MessageType;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -36,39 +34,25 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
-        String workerIp = insocket.getAddress().getHostAddress();
-        int port = insocket.getPort();
-        String workerId = workerIp+":"+port;
-        Map<String, ChannelHandlerContext> workers = ResourceRepository.workers;
-        workers.put(workerId+":"+port, ctx);
+        String workerId = getWorkerId(ctx);
+        jobManager.addWorker(workerId, ctx);
         sendMsg("有新连接接入 " + workerId, true);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        Map<String, ChannelHandlerContext> workers = ResourceRepository.workers;
-        for (String workerId : workers.keySet()) {
-            if (workers.get(workerId) == ctx) {
-                workers.remove(workerId);
-                sendMsg("断开连接 " + workerId, true);
-                return;
-            }
+        String workerId = getWorkerId(ctx);
+        if(jobManager.removeWorker(workerId)){
+            sendMsg("断开连接 " + workerId, true);
+        }else {
+            sendMsg("断开连接失败" + workerId, true);
         }
-        InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
-        String workerIp = insocket.getAddress().getHostAddress();
-        int port = insocket.getPort();
-        String workerId = workerIp+":"+port;
-        sendMsg("断开连接失败" + workerId, true);
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
-        String workerIp = insocket.getAddress().getHostAddress();
-        int port = insocket.getPort();
-        String workerId = workerIp+":"+port;
+        String workerId = getWorkerId(ctx);
         Message message = (Message) msg;
         int type = message!=null?message.getMessageHeader().getMessageType():0;
         switch (type){
@@ -113,10 +97,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         if (evt instanceof IdleStateEvent){
             IdleStateEvent event = (IdleStateEvent)evt;
             if (event.state()== IdleState.READER_IDLE){
-                InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
-                String workerIp = insocket.getAddress().getHostAddress();
-                int port = insocket.getPort();
-                String workerId = workerIp+":"+port;
+                String workerId = getWorkerId(ctx);
                 sendMsg("关闭这个不活跃通道！"+workerId, true);
                 ctx.channel().close();
             }
@@ -132,5 +113,13 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         if (isLog){
             Log.d("ServerHandler", message);
         }
+    }
+
+    private String getWorkerId(ChannelHandlerContext ctx){
+        InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
+
+        String workerIp = insocket.getAddress().getHostAddress();
+        int port = insocket.getPort();
+        return workerIp+":"+port;
     }
 }

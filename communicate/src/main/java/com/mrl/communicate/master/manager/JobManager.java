@@ -4,7 +4,10 @@ import com.mrl.communicate.master.data.ResourceRepository;
 import com.mrl.protocol.pojo.Task;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Random;
+
+import io.netty.channel.ChannelHandlerContext;
 
 /**
  * 1.后面会存在不同类型的任务，所以需要用不同的manager进行任务管理，这里把公共方法提取出来；
@@ -60,6 +63,23 @@ public abstract class JobManager {
             ResourceRepository.taskWorker.put(workerId, task);
         }
         return task;
+    }
+
+    public void addWorker(String workerId, ChannelHandlerContext ctx){
+        ResourceRepository.workers.put(workerId, ctx);
+    }
+
+    public boolean removeWorker(String workerId){
+        Task task = ResourceRepository.taskWorker.remove(workerId);
+        if(task != null){
+            ResourceRepository.task.add(task);
+        }
+        Object oj = ResourceRepository.workers.remove(workerId);
+        if(oj != null){
+            return true;
+        }else {
+            return false;
+        }
     }
 
     public abstract boolean submitTask(String workerIp, Object res);
