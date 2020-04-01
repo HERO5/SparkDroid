@@ -90,6 +90,15 @@
                 android:layout_weight="1"
                 android:text="stop" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
             <Button
                 android:id="@+id/tensor"
                 android:layout_width="0dp"
@@ -97,7 +106,25 @@
                 android:layout_gravity="center"
                 android:layout_margin="1dp"
                 android:layout_weight="1"
-                android:text="TENSOR" />
+                android:text="TF LOCAL" />
+
+            <Button
+                android:id="@+id/tensor_ps_server"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:layout_margin="1dp"
+                android:layout_weight="1"
+                android:text="TF SERVER" />
+
+            <Button
+                android:id="@+id/tensor_ps_client"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:layout_margin="1dp"
+                android:layout_weight="1"
+                android:text="TF CLIENT" />
 
         </LinearLayout>
 

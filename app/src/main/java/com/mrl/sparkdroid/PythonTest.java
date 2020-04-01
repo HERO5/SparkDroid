@@ -20,6 +20,20 @@ public class PythonTest {
         module.callAttr("read_model");
     }
 
+    public synchronized static void testTensorServer(){
+        Python py = Python.getInstance();
+        PyObject module = py.getModule("server_ps");
+        module.callAttr("train", "192.168.1.6:2222",
+                "192.168.1.12:2223,192.168.1.12:2224", "ps", 0);
+    }
+
+    public synchronized static String testTensorClient(){
+        Python py = Python.getInstance();
+        PyObject module = py.getModule("client_ps");
+        PyObject res = module.callAttr("train");
+        return res.toString();
+    }
+
     // 调用python代码
     public static void testPythonCode(){
         Python py = Python.getInstance();

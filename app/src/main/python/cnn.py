@@ -41,7 +41,9 @@ E/AndroidRuntime: FATAL EXCEPTION: Thread-3
         at java.lang.Thread.run(Thread.java:784)
 '''
 
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 import input_data
 
 #权重函数

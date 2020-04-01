@@ -31,3 +31,20 @@ Hi! 这是一款开源android应用，我想通过它来实现移动端的分布
 # 其他
 
 目前此应用还不能称得上分布式，因为性能还很低，可以执行的任务很有限，不过这只是个开始，慢慢做吧。
+
+# 更新日志
+
+### 更新chaquopy至7.0.2，更新tensorflow至2.1.0
+
+### 新增tensor分布式功能--2020.04.01
+
+此功能可以[将tensor计算图运行在多个设备上](https://www.tensorflow.org/tutorials/distribute/custom_training)，结合chaquopy，就实现了安卓上的“分布式tensor”。
+> 这次的更新算是实现了真正意义上的分布式，但是和之前自定义的任务执行模式无关，因为这次完全是依靠tensorflow自家的任务处理策略(包括通信)，而我相当于一个搬运工。。。
+
+具体使用方式还没封装好，大体有以下几个需要注意的地方：
+- 你的Android手机可以作为Server(计算服务提供者)，也可以作为Client(任务发起者)，但不能同时启动Server和Client，因为这样会报错，原因不明。
+- 当选择启动Server时，你需要设定几个参数，我把参数写在了[PythonTest.testTensorServer()](app/src/main/java/com/mrl/sparkdroid/PythonTest.java)里(也可以通过输入框动态设定，但嫌麻烦没弄)，参数的含义可以参考[server_ps.py](doc/demo/server_ps.py)。点击“TF SERVER”以启动一个Server。
+- 当选择启动Client时，你需要先把任务代码写在代码输入框，demo可以参考[client_ps](doc/demo/client_ps.py)，然后点击“TF CLIENT”以启动Client。
+> 使用前最好先稍微学习一下tensorflow的分布式使用方法
+
+此外还实验了“用tensor分布式训练mnist数据集”，demo在[bp_ps1.py](doc/demo/bp_ps1.py)里，问题很多，所以先不加进来。

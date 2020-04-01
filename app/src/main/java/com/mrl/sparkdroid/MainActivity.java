@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
     private Button worker;
     private Button stop;
     private Button tensor;
+    private Button tensorServer;
+    private Button tensorClient;
     private final Handler handlerMaster = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -119,10 +121,14 @@ public class MainActivity extends AppCompatActivity {
         worker = findViewById(R.id.worker);
         stop = findViewById(R.id.stop);
         tensor = findViewById(R.id.tensor);
+        tensorServer = findViewById(R.id.tensor_ps_server);
+        tensorClient = findViewById(R.id.tensor_ps_client);
         master.setOnClickListener(mListener);
         worker.setOnClickListener(mListener);
         stop.setOnClickListener(mListener);
         tensor.setOnClickListener(mListener);
+        tensorServer.setOnClickListener(mListener);
+        tensorClient.setOnClickListener(mListener);
     }
 
     View.OnClickListener mListener = new View.OnClickListener() {
@@ -132,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
             String i = ip.getText().toString().trim();
             String p = port.getText().toString().trim();
             String sourceCode = source.getText().toString();
+            final long start = new Date().getTime();
             switch (view.getId()) {
                 case R.id.master:
                     msgMaster.append("先清除已存在连接\n");
@@ -194,18 +201,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("on stop clicked", "......stop all......");
                     break;
                 case R.id.tensor:
-//                    final String finalSourceCode = sourceCode;
-//                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            call(finalSourceCode, "train", null);
-//                            msgMaster.append("训练完成\n模型保存在\"/storage/emulated/0/tensor-model/\"");
-//                        }
-//                    }).start();
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            long start = new Date().getTime();
                             Message message1 = new Message();
                             message1.obj = "开始训练MNIST";
                             handlerMaster.sendMessage(message1);
@@ -216,6 +214,31 @@ public class MainActivity extends AppCompatActivity {
                             handlerMaster.sendMessage(message2);
                         }
                     }).start();
+                    break;
+                case R.id.tensor_ps_server:
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Message message1 = new Message();
+                            message1.obj = "开启 Tensor Server";
+                            handlerMaster.sendMessage(message1);
+                            PythonTest.testTensorServer();
+                        }
+                    }).start();
+                    break;
+                case R.id.tensor_ps_client:
+//                    new Thread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            Message message1 = new Message();
+//                            message1.obj = "开启 Tensor Client";
+//                            handlerMaster.sendMessage(message1);
+//                            PythonTest.testTensorClient();
+//                        }
+//                    }).start();
+                    PyObject res = call(sourceCode, "train", null);
+                    msgMaster.append(res.toString()+"\n");
+                    scrollMaster.scrollTo(0,msgMaster.getBottom());
                     break;
                 default:
                     break;

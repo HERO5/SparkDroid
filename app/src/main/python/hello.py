@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 import sys
 import os
 from java import jclass
