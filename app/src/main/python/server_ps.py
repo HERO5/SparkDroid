@@ -24,3 +24,9 @@ def train(ps_hosts, worker_hosts, job_name, task_index):
     FLAGS.job_name = job_name
     FLAGS.task_index = task_index
     tf.app.run(main)
+
+'''
+python example.py --job_name=ps --task_index=0
+python example.py --job_name=worker --task_index=0
+python example.py --job_name=worker --task_index=1
+'''

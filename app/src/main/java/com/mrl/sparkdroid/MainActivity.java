@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             String i = ip.getText().toString().trim();
             String p = port.getText().toString().trim();
-            String sourceCode = source.getText().toString();
+            final String sourceCode = source.getText().toString();
             final long start = new Date().getTime();
             switch (view.getId()) {
                 case R.id.master:
@@ -153,7 +153,8 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
                     if(sourceCode!=null && sourceCode.contains("def main") && sourceCode.contains("return")){
-                        sourceCode = source.getText().toString();
+//                        sourceCode = source.getText().toString();
+                        msgMaster.append("合法代码");
                     }else {
                         msgMaster.append("必须包含一个带单参、有返回值、名为main的方法");
                         break;
@@ -222,7 +223,10 @@ public class MainActivity extends AppCompatActivity {
                             Message message1 = new Message();
                             message1.obj = "开启 Tensor Server";
                             handlerMaster.sendMessage(message1);
-                            PythonTest.testTensorServer();
+//                            PythonTest.testTensorServer();
+                            PyObject res1 = call(sourceCode, "train", null);
+                            msgMaster.append(res1.toString()+"\n");
+                            scrollWorker.scrollTo(0,msgWorker.getBottom());
                         }
                     }).start();
                     break;
@@ -236,8 +240,8 @@ public class MainActivity extends AppCompatActivity {
 //                            PythonTest.testTensorClient();
 //                        }
 //                    }).start();
-                    PyObject res = call(sourceCode, "train", null);
-                    msgMaster.append(res.toString()+"\n");
+                    PyObject res2 = call(sourceCode, "train", null);
+                    msgMaster.append(res2.toString()+"\n");
                     scrollMaster.scrollTo(0,msgMaster.getBottom());
                     break;
                 default:

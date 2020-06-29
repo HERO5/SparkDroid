@@ -20,7 +20,7 @@ android {
                 install "requests"
                 //直接从官网上下载资源会非常慢，建议将依赖包下载到本地
                 install "libs/chaquopy/tensorflow-2.1.0-9-cp38-cp38-android_16_armeabi_v7a.whl"
-                install "libs/chaquopy/tensorboard-2.1.1-py3-none-any.whl"
+                //install "libs/chaquopy/tensorboard-2.1.1-py3-none-any.whl"
                 install "tensorflow==2.1.0" //此行等价于下面数行
 //                install "libs/chaquopy/chaquopy_openblas-0.2.20-2-py2.py3-none-android_15_armeabi_v7a.whl"
 //                install "libs/chaquopy/numpy-1.17.4-1-cp36-cp36m-android_15_armeabi_v7a.whl"
